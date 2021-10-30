@@ -769,3 +769,474 @@ public class ProductDAO {
     }
 
 }
+
+
+
+
+
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CartInfo {
+
+    private int orderNum;
+
+    private CustomerInfo customerInfo;
+
+    private final List<CartLineInfo> cartLines = new ArrayList<CartLineInfo>();
+
+    public CartInfo() {
+
+    }
+
+    public int getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(int orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public CustomerInfo getCustomerInfo() {
+        return customerInfo;
+    }
+
+    public void setCustomerInfo(CustomerInfo customerInfo) {
+        this.customerInfo = customerInfo;
+    }
+
+    public List<CartLineInfo> getCartLines() {
+        return this.cartLines;
+    }
+
+    private CartLineInfo findLineByCode(String code) {
+        for (CartLineInfo line : this.cartLines) {
+            if (line.getProductInfo().getCode().equals(code)) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    public void addProduct(ProductInfo productInfo, int quantity) {
+        CartLineInfo line = this.findLineByCode(productInfo.getCode());
+
+        if (line == null) {
+            line = new CartLineInfo();
+            line.setQuantity(0);
+            line.setProductInfo(productInfo);
+            this.cartLines.add(line);
+        }
+        int newQuantity = line.getQuantity() + quantity;
+        if (newQuantity <= 0) {
+            this.cartLines.remove(line);
+        } else {
+            line.setQuantity(newQuantity);
+        }
+    }
+
+    public void validate() {
+
+    }
+
+    public void updateProduct(String code, int quantity) {
+        CartLineInfo line = this.findLineByCode(code);
+
+        if (line != null) {
+            if (quantity <= 0) {
+                this.cartLines.remove(line);
+            } else {
+                line.setQuantity(quantity);
+            }
+        }
+    }
+
+    public void removeProduct(ProductInfo productInfo) {
+        CartLineInfo line = this.findLineByCode(productInfo.getCode());
+        if (line != null) {
+            this.cartLines.remove(line);
+        }
+    }
+
+    public boolean isEmpty() {
+        return this.cartLines.isEmpty();
+    }
+
+    public boolean isValidCustomer() {
+        return this.customerInfo != null && this.customerInfo.isValid();
+    }
+
+    public int getQuantityTotal() {
+        int quantity = 0;
+        for (CartLineInfo line : this.cartLines) {
+            quantity += line.getQuantity();
+        }
+        return quantity;
+    }
+
+    public double getAmountTotal() {
+        double total = 0;
+        for (CartLineInfo line : this.cartLines) {
+            total += line.getAmount();
+        }
+        return total;
+    }
+
+    public void updateQuantity(CartInfo cartForm) {
+        if (cartForm != null) {
+            List<CartLineInfo> lines = cartForm.getCartLines();
+            for (CartLineInfo line : lines) {
+                this.updateProduct(line.getProductInfo().getCode(), line.getQuantity());
+            }
+        }
+
+    }
+
+}
+CartLineInfo.java
+
+package org.o7planning.sbshoppingcart.model;
+ 
+
+public class CartLineInfo {
+ 
+    private ProductInfo productInfo;
+    private int quantity;
+ 
+    public CartLineInfo() {
+        this.quantity = 0;
+    }
+ 
+    public ProductInfo getProductInfo() {
+        return productInfo;
+    }
+ 
+    public void setProductInfo(ProductInfo productInfo) {
+        this.productInfo = productInfo;
+    }
+ 
+    public int getQuantity() {
+        return quantity;
+    }
+ 
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+ 
+    public double getAmount() {
+        return this.productInfo.getPrice() * this.quantity;
+    }
+    
+}
+CustomerInfo.java
+
+package org.o7planning.sbshoppingcart.model;
+
+import org.o7planning.sbshoppingcart.form.CustomerForm;
+
+public class CustomerInfo {
+
+    private String name;
+    private String address;
+    private String email;
+    private String phone;
+
+    private boolean valid;
+
+    public CustomerInfo() {
+
+    }
+
+    public CustomerInfo(CustomerForm customerForm) {
+        this.name = customerForm.getName();
+        this.address = customerForm.getAddress();
+        this.email = customerForm.getEmail();
+        this.phone = customerForm.getPhone();
+        this.valid = customerForm.isValid();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+}
+OrderDetailInfo.java
+
+package org.o7planning.sbshoppingcart.model;
+
+public class OrderDetailInfo {
+    private String id;
+
+    private String productCode;
+    private String productName;
+
+    private int quanity;
+    private double price;
+    private double amount;
+
+    public OrderDetailInfo() {
+
+    }
+
+    // Using for JPA/Hibernate Query.
+    public OrderDetailInfo(String id, String productCode, //
+            String productName, int quanity, double price, double amount) {
+        this.id = id;
+        this.productCode = productCode;
+        this.productName = productName;
+        this.quanity = quanity;
+        this.price = price;
+        this.amount = amount;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public int getQuanity() {
+        return quanity;
+    }
+
+    public void setQuanity(int quanity) {
+        this.quanity = quanity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+}
+OrderInfo.java
+
+package org.o7planning.sbshoppingcart.model;
+
+import java.util.Date;
+import java.util.List;
+
+public class OrderInfo {
+
+    private String id;
+    private Date orderDate;
+    private int orderNum;
+    private double amount;
+
+    private String customerName;
+    private String customerAddress;
+    private String customerEmail;
+    private String customerPhone;
+
+    private List<OrderDetailInfo> details;
+
+    public OrderInfo() {
+
+    }
+
+    // Using for Hibernate Query.
+    public OrderInfo(String id, Date orderDate, int orderNum, //
+            double amount, String customerName, String customerAddress, //
+            String customerEmail, String customerPhone) {
+        this.id = id;
+        this.orderDate = orderDate;
+        this.orderNum = orderNum;
+        this.amount = amount;
+
+        this.customerName = customerName;
+        this.customerAddress = customerAddress;
+        this.customerEmail = customerEmail;
+        this.customerPhone = customerPhone;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Date getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(Date orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public int getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(int orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerAddress() {
+        return customerAddress;
+    }
+
+    public void setCustomerAddress(String customerAddress) {
+        this.customerAddress = customerAddress;
+    }
+
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+
+    public List<OrderDetailInfo> getDetails() {
+        return details;
+    }
+
+    public void setDetails(List<OrderDetailInfo> details) {
+        this.details = details;
+    }
+
+}
+ProductInfo.java
+
+package org.o7planning.sbshoppingcart.model;
+
+import org.o7planning.sbshoppingcart.entity.Product;
+
+public class ProductInfo {
+    private String code;
+    private String name;
+    private double price;
+
+    public ProductInfo() {
+    }
+
+    public ProductInfo(Product product) {
+        this.code = product.getCode();
+        this.name = product.getName();
+        this.price = product.getPrice();
+    }
+
+    // Using in JPA/Hibernate query
+    public ProductInfo(String code, String name, double price) {
+        this.code = code;
+        this.name = name;
+        this.price = price;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+}
